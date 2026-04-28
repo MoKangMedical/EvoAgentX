@@ -1,0 +1,68 @@
+{
+    "name": "Drug Safety Analysis Workflow",
+    "description": "Comprehensive drug safety analysis pipeline that searches drug labels, checks interactions, reviews adverse event data, and generates a safety profile report. Integrates with DrugMind for drug development workflows.",
+    "version": "1.0.0",
+    "author": "MoKangMedical",
+    "tags": ["medical", "drug-safety", "fda", "drugmind"],
+
+    "nodes": [
+        {
+            "id": "drug_info",
+            "type": "tool",
+            "name": "Drug Information Lookup",
+            "tool": "drug_search",
+            "description": "Search FDA drug labels for the target drug",
+            "inputs": ["goal"],
+            "outputs": ["drug_label_data"],
+            "params": {
+                "max_results": 3
+            }
+        },
+        {
+            "id": "clinical_trials",
+            "type": "tool",
+            "name": "Clinical Trials Search",
+            "tool": "clinical_trials_search",
+            "description": "Search for related clinical trials",
+            "inputs": ["goal"],
+            "outputs": ["trial_data"],
+            "params": {
+                "max_results": 10
+            }
+        },
+        {
+            "id": "literature_search",
+            "type": "tool",
+            "name": "PubMed Safety Literature",
+            "tool": "pubmed_search",
+            "description": "Search for safety-related publications",
+            "inputs": ["goal"],
+            "outputs": ["safety_literature"],
+            "params": {
+                "max_results": 10
+            }
+        },
+        {
+            "id": "safety_analysis",
+            "type": "llm",
+            "name": "Safety Profile Analysis",
+            "description": "Analyze all gathered data for safety profile",
+            "prompt": "You are a pharmacovigilance specialist. Analyze the following drug safety data:\n\n**FDA Drug Label Data:**\n{{drug_label_data}}\n\n**Clinical Trial Data:**\n{{trial_data}}\n\n**Safety Literature:**\n{{safety_literature}}\n\nGenerate a comprehensive drug safety profile including:\n1. Drug Overview (name, class, mechanism)\n2. Indications and Contraindications\n3. Common Adverse Reactions (frequency)\n4. Serious Adverse Events (black box warnings)\n5. Drug-Drug Interactions\n6. Special Populations (pregnancy, pediatrics, geriatrics, renal/hepatic)\n7. Clinical Trial Safety Summary\n8. Post-Market Surveillance Signals\n9. Risk-Benefit Assessment\n10. Recommendations\n\nAll claims must cite source (FDA label section, PMID, or NCT ID).",
+            "inputs": ["drug_label_data", "trial_data", "safety_literature"],
+            "outputs": ["safety_report"]
+        }
+    ],
+
+    "edges": [
+        {"from": "drug_info", "to": "safety_analysis", "data": ["drug_label_data"]},
+        {"from": "clinical_trials", "to": "safety_analysis", "data": ["trial_data"]},
+        {"from": "literature_search", "to": "safety_analysis", "data": ["safety_literature"]}
+    ],
+
+    "metadata": {
+        "requires_tools": ["drug_search", "clinical_trials_search", "pubmed_search"],
+        "integrates_with": ["drugmind", "pharmasim"],
+        "output_format": "markdown",
+        "estimated_time": "3-7 minutes"
+    }
+}
