@@ -1,0 +1,84 @@
+# ─────────────────────────────────────────────────────────────
+# EvoAgentX Medical AI — Docker Compose
+# ─────────────────────────────────────────────────────────────
+# Usage:
+#   docker-compose up -d            # Start API server
+#   docker-compose up -d dashboard  # Start with dashboard
+#   docker-compose run --rm cli setup   # Run CLI commands
+#   docker-compose logs -f api      # View logs
+# ─────────────────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+  # ── API Server ──
+  api:
+    build:
+      context: .
+      target: app
+    container_name: evoagentx-api
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - SILICONFLOW_API_KEY=${SILICONFLOW_API_KEY:-}
+      - NCBI_API_KEY=${NCBI_API_KEY:-}
+      - NCBI_EMAIL=${NCBI_EMAIL:-user@evoagentx.med}
+    volumes:
+      - evoagentx-output:/app/output
+      - evoagentx-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── CLI (one-off commands) ──
+  cli:
+    build:
+      context: .
+      target: full
+    container_name: evoagentx-cli
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - NCBI_API_KEY=${NCBI_API_KEY:-}
+      - NCBI_EMAIL=${NCBI_EMAIL:-user@evoagentx.med}
+    volumes:
+      - evoagentx-output:/app/output
+    profiles:
+      - cli
+
+  # ── Tests ──
+  test:
+    build:
+      context: .
+      target: full
+    container_name: evoagentx-test
+    command: ["test", "--medical-only"]
+    profiles:
+      - test
+
+  # ── Dashboard (optional) ──
+  dashboard:
+    build:
+      context: .
+      target: app
+    container_name: evoagentx-dashboard
+    ports:
+      - "8080:8080"
+    command: >
+      python -c "
+      import http.server, socketserver, os
+      os.chdir('/app/evoagentx/app/static')
+      handler = http.server.SimpleHTTPRequestHandler
+      with socketserver.TCPServer(('0.0.0.0', 8080), handler) as httpd:
+          httpd.serve_forever()
+      "
+    profiles:
+      - dashboard
+
+volumes:
+  evoagentx-output:
+  evoagentx-data:
