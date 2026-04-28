@@ -1,0 +1,73 @@
+{
+    "name": "Medical Literature Review Workflow",
+    "description": "Automated medical literature review pipeline that searches PubMed, screens articles, extracts key findings, and generates a structured review report. Integrates with MetaForge for systematic review methodology.",
+    "version": "1.0.0",
+    "author": "MoKangMedical",
+    "tags": ["medical", "pubmed", "literature-review", "metaforge"],
+
+    "nodes": [
+        {
+            "id": "query_builder",
+            "type": "llm",
+            "name": "Search Query Builder",
+            "description": "Construct optimized PubMed search queries using MeSH terms and boolean operators",
+            "prompt": "You are a medical literature search specialist. Given the research topic: {{goal}}, construct an optimized PubMed search query. Include relevant MeSH terms, synonyms, and boolean operators (AND, OR, NOT). Specify date range if relevant. Output the search query and explain your strategy.",
+            "inputs": ["goal"],
+            "outputs": ["search_query", "search_strategy"]
+        },
+        {
+            "id": "pubmed_search",
+            "type": "tool",
+            "name": "PubMed Search",
+            "tool": "pubmed_search",
+            "description": "Execute PubMed search with the constructed query",
+            "inputs": ["search_query"],
+            "outputs": ["raw_results"],
+            "params": {
+                "max_results": 20,
+                "sort": "relevance"
+            }
+        },
+        {
+            "id": "screening",
+            "type": "llm",
+            "name": "Article Screening",
+            "description": "Screen articles for relevance using PICOS criteria",
+            "prompt": "You are a systematic review screener. Given these PubMed results:\n\n{{raw_results}}\n\nFor each article, evaluate relevance using PICOS criteria:\n- Population: Does the study population match the research question?\n- Intervention: Is the intervention/exposure relevant?\n- Comparison: Is there an appropriate comparator?\n- Outcome: Are relevant outcomes measured?\n- Study design: Is the study design appropriate?\n\nFor each article, output: PMID, decision (INCLUDE/EXCLUDE/MAYBE), and brief rationale.",
+            "inputs": ["raw_results"],
+            "outputs": ["screening_decisions"]
+        },
+        {
+            "id": "data_extraction",
+            "type": "llm",
+            "name": "Data Extraction",
+            "description": "Extract key findings from included articles",
+            "prompt": "You are a medical data extractor. Given the screening decisions:\n\n{{screening_decisions}}\n\nFor each INCLUDED article, extract:\n1. Study design and sample size\n2. Key findings and effect sizes\n3. Limitations and risk of bias\n4. Clinical significance\n5. Source PMID for traceability\n\nFormat as structured data with clear citations.",
+            "inputs": ["screening_decisions"],
+            "outputs": ["extracted_data"]
+        },
+        {
+            "id": "synthesis",
+            "type": "llm",
+            "name": "Evidence Synthesis",
+            "description": "Synthesize findings into a coherent review",
+            "prompt": "You are a medical evidence synthesizer. Given the extracted data:\n\n{{extracted_data}}\n\nGenerate a structured literature review with:\n1. Executive Summary\n2. Background and Rationale\n3. Methods (search strategy, inclusion criteria)\n4. Results (narrative synthesis by theme)\n5. Discussion (clinical implications, limitations)\n6. Conclusion\n7. References (with PMIDs)\n\nEnsure all claims are traceable to source PMIDs. Flag any gaps in evidence.",
+            "inputs": ["extracted_data"],
+            "outputs": ["review_report"]
+        }
+    ],
+
+    "edges": [
+        {"from": "query_builder", "to": "pubmed_search", "data": ["search_query"]},
+        {"from": "pubmed_search", "to": "screening", "data": ["raw_results"]},
+        {"from": "screening", "to": "data_extraction", "data": ["screening_decisions"]},
+        {"from": "data_extraction", "to": "synthesis", "data": ["extracted_data"]}
+    ],
+
+    "metadata": {
+        "requires_tools": ["pubmed_search"],
+        "integrates_with": ["metaforge"],
+        "output_format": "markdown",
+        "estimated_time": "2-5 minutes"
+    }
+}
