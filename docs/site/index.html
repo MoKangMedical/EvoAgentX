@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvoAgentX — Self-Evolving AI Agent Framework</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#09090b;--surface:#18181b;--surface2:#27272a;--border:#3f3f46;
+--text:#fafafa;--text2:#a1a1aa;--text3:#71717a;
+--accent:#6366f1;--accent2:#818cf8;--accent-glow:rgba(99,102,241,.15);
+--green:#22c55e;--cyan:#06b6d4;--orange:#f97316;--pink:#ec4899;
+--radius:12px;--radius-lg:20px;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;backdrop-filter:blur(16px);background:rgba(9,9,11,.8);border-bottom:1px solid var(--border)}
+nav .container{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.5px}
+.logo span{color:var(--accent2)}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{color:var(--text2);font-size:14px;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text);text-decoration:none}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2);text-decoration:none}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-ghost:hover{border-color:var(--text3);color:var(--text);text-decoration:none}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,var(--accent-glow),transparent 70%),radial-gradient(ellipse 60% 40% at 80% 50%,rgba(6,182,212,.06),transparent),radial-gradient(ellipse 60% 40% at 20% 80%,rgba(236,72,153,.04),transparent)}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:64px 64px;opacity:.12;mask-image:radial-gradient(ellipse 70% 60% at 50% 40%,black,transparent)}
+.hero-content{position:relative;z-index:2;max-width:800px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:999px;border:1px solid var(--border);background:var(--surface);font-size:13px;color:var(--text2);margin-bottom:28px}
+.hero-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-size:clamp(48px,8vw,88px);font-weight:800;letter-spacing:-2px;line-height:1;margin-bottom:24px;background:linear-gradient(135deg,#fff 0%,var(--accent2) 50%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:clamp(16px,2vw,20px);color:var(--text2);max-width:580px;margin:0 auto 40px;line-height:1.7}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.hero-code{margin-top:48px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;text-align:left;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:14px;color:var(--text2);overflow-x:auto;max-width:600px;margin-left:auto;margin-right:auto;position:relative}
+.hero-code .prompt{color:var(--green)}.hero-code .cmd{color:var(--text)}
+.hero-code .copy-btn{position:absolute;top:12px;right:12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--text3);cursor:pointer;transition:all .2s}
+.hero-code .copy-btn:hover{border-color:var(--text2);color:var(--text2)}
+
+/* SECTIONS */
+section{padding:120px 0}
+.section-label{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent2);margin-bottom:16px}
+.section-title{font-size:clamp(32px,5vw,48px);font-weight:800;letter-spacing:-1.5px;line-height:1.15;margin-bottom:16px}
+.section-desc{font-size:18px;color:var(--text2);max-width:560px;line-height:1.7}
+
+/* STATS */
+.stats{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface)}
+.stats .container{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.stat{text-align:center;padding:48px 24px;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-num{font-size:clamp(36px,5vw,56px);font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,var(--accent2),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:14px;color:var(--text3);margin-top:4px}
+
+/* FEATURES */
+.features .container{text-align:center}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px}
+.feature-card{text-align:left;padding:32px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);transition:all .3s;position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent2),transparent);opacity:0;transition:opacity .3s}
+.feature-card:hover{border-color:var(--text3);transform:translateY(-2px)}
+.feature-card:hover::before{opacity:1}
+.feature-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px;background:var(--surface2);border:1px solid var(--border)}
+.feature-card h3{font-size:17px;font-weight:700;margin-bottom:8px;letter-spacing:-.3px}
+.feature-card p{font-size:14px;color:var(--text3);line-height:1.65}
+.feature-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-top:12px;background:var(--accent-glow);color:var(--accent2)}
+
+/* ARCHITECTURE */
+.arch{text-align:center;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.arch-diagram{margin-top:56px;max-width:900px;margin-left:auto;margin-right:auto}
+.arch-row{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:0}
+.arch-node{padding:16px 32px;border-radius:var(--radius);font-size:15px;font-weight:700;letter-spacing:-.3px;border:1px solid var(--border);position:relative;min-width:160px;text-align:center}
+.arch-arrow{display:flex;align-items:center;justify-content:center;padding:8px 0;color:var(--text3);font-size:20px}
+.arch-arrow svg{width:20px;height:32px}
+.arch-layer{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 24px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--border);min-width:150px;transition:all .3s}
+.arch-layer:hover{border-color:var(--accent);box-shadow:0 0 20px var(--accent-glow)}
+.arch-layer-label{font-size:14px;font-weight:700;color:var(--text)}
+.arch-layer-sub{font-size:11px;color:var(--text3)}
+.arch-flow{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:40px}
+.arch-flow-item{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-size:14px;font-weight:600;color:var(--text)}
+.arch-flow-item.active{border-color:var(--accent);color:var(--accent2)}
+.arch-flow-sep{color:var(--text3);font-size:18px}
+
+/* CODE PLAYGROUND */
+.playground .container{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.code-header{display:flex;align-items:center;gap:8px;padding:14px 20px;border-bottom:1px solid var(--border);background:rgba(39,39,42,.5)}
+.code-dot{width:10px;height:10px;border-radius:50%}.code-dot.r{background:#ef4444}.code-dot.y{background:#eab308}.code-dot.g{background:#22c55e}
+.code-header span{font-size:13px;color:var(--text3);margin-left:8px;font-family:monospace}
+.code-body{padding:24px;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:13px;line-height:1.8;overflow-x:auto;max-height:500px}
+.code-body .kw{color:#c084fc}.code-body .fn{color:#60a5fa}.code-body .str{color:#86efac}.code-body .cmt{color:#52525b;font-style:italic}.code-body .num{color:#f97316}.code-body .cls{color:#fbbf24}.code-body .op{color:#94a3b8}
+.code-tabs{display:flex;border-bottom:1px solid var(--border)}
+.code-tab{padding:10px 20px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none}
+.code-tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
+.code-tab:hover{color:var(--text2)}
+.play-info h3{font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:16px}
+.play-info p{color:var(--text2);font-size:16px;line-height:1.7;margin-bottom:20px}
+.play-info ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.play-info li{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text2)}
+.play-info li::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+
+/* QUICK START */
+.qs .container{text-align:center}
+.qs-box{max-width:700px;margin:48px auto 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;text-align:left}
+.qs-step{padding:24px 32px;border-bottom:1px solid var(--border)}
+.qs-step:last-child{border-bottom:none}
+.qs-step h4{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);margin-bottom:12px}
+.qs-step code{display:block;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px 20px;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:13px;line-height:1.8;color:var(--text2);overflow-x:auto;white-space:pre}
+
+/* FOOTER */
+footer{padding:64px 0 40px;border-top:1px solid var(--border)}
+footer .container{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px}
+.footer-links{display:flex;gap:28px}
+.footer-links a{color:var(--text3);font-size:14px;font-weight:500;transition:color .2s}
+.footer-links a:hover{color:var(--text);text-decoration:none}
+.footer-copy{font-size:13px;color:var(--text3)}
+
+/* ANIMATIONS */
+.fade-up{opacity:0;transform:translateY(30px);transition:all .7s cubic-bezier(.16,1,.3,1)}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+.features-grid{grid-template-columns:repeat(2,1fr)}
+.playground .container{grid-template-columns:1fr}
+.stats .container{grid-template-columns:repeat(2,1fr)}
+.stat{border-bottom:1px solid var(--border)}
+.nav-links{display:none}
+.arch-flow{flex-direction:column;gap:8px}
+.arch-flow-sep{transform:rotate(90deg)}
+}
+@media(max-width:600px){
+.features-grid{grid-template-columns:1fr}
+.stats .container{grid-template-columns:1fr}
+}
+
+/* GLOW ANIMATION */
+@keyframes glow{0%,100%{opacity:.5}50%{opacity:1}}
+.glow{animation:glow 3s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+<div class="container">
+<a href="#" class="logo">Evo<span>AgentX</span></a>
+<ul class="nav-links">
+<li><a href="#features">Features</a></li>
+<li><a href="#architecture">Architecture</a></li>
+<li><a href="#playground">Playground</a></li>
+<li><a href="#quickstart">Quick Start</a></li>
+</ul>
+<div style="display:flex;gap:10px">
+<a href="https://github.com/MoKangMedical/EvoAgentX" class="btn btn-ghost" target="_blank">GitHub</a>
+<a href="#quickstart" class="btn btn-primary">Get Started</a>
+</div>
+</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+<div class="hero-bg"></div>
+<div class="hero-grid"></div>
+<div class="hero-content">
+<div class="hero-badge"><span class="dot"></span> Open Source — MIT License</div>
+<h1>EvoAgentX</h1>
+<p>Self-Evolving AI Agent Framework with Medical AI Integration. Build, evolve, and optimize intelligent agent workflows.</p>
+<div class="hero-actions">
+<a href="#quickstart" class="btn btn-primary">Get Started →</a>
+<a href="https://github.com/MoKangMedical/EvoAgentX" class="btn btn-ghost" target="_blank">★ Star on GitHub</a>
+</div>
+<div class="hero-code">
+<button class="copy-btn" onclick="navigator.clipboard.writeText('pip install evoagentx')">Copy</button>
+<span class="prompt">$</span> <span class="cmd">pip install evoagentx</span><br>
+<span style="color:var(--text3)">Successfully installed evoagentx-0.1.0</span>
+</div>
+</div>
+</section>
+
+<!-- STATS -->
+<section class="stats">
+<div class="container">
+<div class="stat fade-up"><div class="stat-num" data-count="27">0</div><div class="stat-label">Modules</div></div>
+<div class="stat fade-up"><div class="stat-num" data-count="86" data-suffix="K+">0</div><div class="stat-label">Lines of Code</div></div>
+<div class="stat fade-up"><div class="stat-num" data-count="121" data-suffix="">0</div><div class="stat-label">Tests Passing</div></div>
+<div class="stat fade-up"><div class="stat-num" data-count="6">0</div><div class="stat-label">Medical Tools</div></div>
+</div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+<div class="container">
+<div class="section-label">⬡ Features</div>
+<div class="section-title fade-up">Everything you need to build<br>evolving AI agents</div>
+<div class="section-desc fade-up" style="margin:0 auto">A comprehensive framework that combines medical AI tools, evolutionary optimization, and intelligent workflows.</div>
+<div class="features-grid">
+<div class="feature-card fade-up">
+<div class="feature-icon">🏥</div>
+<h3>Medical AI Tools</h3>
+<p>Integrated access to PubMed literature search, ClinicalTrials.gov data, and DrugBank pharmacological information for medical research agents.</p>
+<span class="feature-tag">3 Tools</span>
+</div>
+<div class="feature-card fade-up">
+<div class="feature-icon">🧬</div>
+<h3>EvoX Evolution Bridge</h3>
+<p>Connect to the EvoX evolutionary optimization framework. Evolve agent strategies, prompts, and parameters using genetic algorithms and differential evolution.</p>
+<span class="feature-tag">Optimization</span>
+</div>
+<div class="feature-card fade-up">
+<div class="feature-icon">⚙️</div>
+<h3>Workflow Engine</h3>
+<p>Define complex multi-agent workflows with sequential, parallel, and conditional execution. YAML-based configuration for rapid prototyping.</p>
+<span class="feature-tag">Orchestration</span>
+</div>
+<div class="feature-card fade-up">
+<div class="feature-icon">📚</div>
+<h3>RAG System</h3>
+<p>Retrieval-Augmented Generation with vector stores, chunking strategies, and hybrid search. Keep agents grounded in your knowledge base.</p>
+<span class="feature-tag">Knowledge</span>
+</div>
+<div class="feature-card fade-up">
+<div class="feature-icon">👤</div>
+<h3>HITL</h3>
+<p>Human-in-the-Loop integration for critical decision points. Approval gates, review workflows, and interactive correction mechanisms.</p>
+<span class="feature-tag">Safety</span>
+</div>
+<div class="feature-card fade-up">
+<div class="feature-icon">📊</div>
+<h3>Benchmark Suite</h3>
+<p>Comprehensive benchmarking framework to evaluate agent performance across accuracy, latency, cost, and task completion metrics.</p>
+<span class="feature-tag">Evaluation</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="arch" id="architecture">
+<div class="container">
+<div class="section-label">⬡ Architecture</div>
+<div class="section-title fade-up">Layered Architecture</div>
+<div class="section-desc fade-up" style="margin:0 auto 0">From tools to evolution — each layer builds on the previous, creating a composable and extensible system.</div>
+
+<div class="arch-diagram fade-up">
+<div class="arch-flow">
+<div class="arch-layer active">
+<span class="arch-layer-label">🛠 Tools</span>
+<span class="arch-layer-sub">PubMed · ClinicalTrials · DrugBank</span>
+</div>
+<span class="arch-flow-sep">→</span>
+<div class="arch-layer">
+<span class="arch-layer-label">🤖 Agents</span>
+<span class="arch-layer-sub">LLM-powered autonomous agents</span>
+</div>
+<span class="arch-flow-sep">→</span>
+<div class="arch-layer">
+<span class="arch-layer-label">⚙️ Workflows</span>
+<span class="arch-layer-sub">Sequential · Parallel · Conditional</span>
+</div>
+<span class="arch-flow-sep">→</span>
+<div class="arch-layer">
+<span class="arch-layer-label">🔧 Optimizers</span>
+<span class="arch-layer-sub">Prompt · Strategy · Parameter</span>
+</div>
+<span class="arch-flow-sep">→</span>
+<div class="arch-layer active">
+<span class="arch-layer-label">🧬 EvoX Evolution</span>
+<span class="arch-layer-sub">Genetic · Differential · CMA-ES</span>
+</div>
+</div>
+
+<div style="margin-top:48px;display:flex;justify-content:center;gap:40px;flex-wrap:wrap">
+<div style="text-align:center">
+<div style="font-size:32px;font-weight:800;color:var(--accent2)">5</div>
+<div style="font-size:13px;color:var(--text3)">Architecture Layers</div>
+</div>
+<div style="text-align:center">
+<div style="font-size:32px;font-weight:800;color:var(--cyan)">27</div>
+<div style="font-size:13px;color:var(--text3)">Modules</div>
+</div>
+<div style="text-align:center">
+<div style="font-size:32px;font-weight:800;color:var(--green)">100%</div>
+<div style="font-size:13px;color:var(--text3)">Type-Safe (Pydantic)</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- CODE PLAYGROUND -->
+<section class="playground" id="playground">
+<div class="container">
+<div class="play-info fade-up">
+<div class="section-label">⬡ Code Playground</div>
+<h3>Build medical agents in minutes</h3>
+<p>EvoAgentX provides a clean, Pythonic API for creating intelligent agents with access to medical databases and evolutionary optimization.</p>
+<ul>
+<li>Import tools directly from evoagentx.tools</li>
+<li>Create agents with LLMBackbone integration</li>
+<li>Compose multi-agent workflows with YAML</li>
+<li>Evolve strategies with EvoX bridge</li>
+<li>Built-in RAG for knowledge grounding</li>
+</ul>
+</div>
+<div class="fade-up">
+<div class="code-block">
+<div class="code-tabs">
+<button class="code-tab active" onclick="showTab(0,this)">Medical Agent</button>
+<button class="code-tab" onclick="showTab(1,this)">Workflow</button>
+<button class="code-tab" onclick="showTab(2,this)">Evolution</button>
+</div>
+<div class="code-body" id="code-0"><span class="kw">from</span> evoagentx.tools <span class="kw">import</span> <span class="cls">PubMedTool</span>, <span class="cls">DrugBankTool</span>
+<span class="kw">from</span> evoagentx.agents <span class="kw">import</span> <span class="cls">Agent</span>
+<span class="kw">from</span> evoagentx.models <span class="kw">import</span> <span class="cls">LLMBackbone</span>
+
+<span class="cmt"># Initialize the LLM backbone</span>
+llm <span class="op">=</span> <span class="cls">LLMBackbone</span>(model<span class="op">=</span><span class="str">"gpt-4o"</span>, temperature<span class="op">=</span><span class="num">0.1</span>)
+
+<span class="cmt"># Create medical research tools</span>
+pubmed <span class="op">=</span> <span class="cls">PubMedTool</span>(max_results<span class="op">=</span><span class="num">10</span>)
+drugbank <span class="op">=</span> <span class="cls">DrugBankTool</span>(api_key<span class="op">=</span><span class="str">"your-key"</span>)
+
+<span class="cmt"># Create a medical research agent</span>
+agent <span class="op">=</span> <span class="cls">Agent</span>(
+    name<span class="op">=</span><span class="str">"medical_researcher"</span>,
+    llm<span class="op">=</span>llm,
+    tools<span class="op">=</span>[pubmed, drugbank],
+    system_prompt<span class="op">=</span><span class="str">"""You are a medical research 
+    assistant. Search literature and drug databases 
+    to answer clinical questions."""</span>
+)
+
+<span class="cmt"># Run a research query</span>
+result <span class="op">=</span> agent.run(
+    <span class="str">"What are the latest treatments for 
+    treatment-resistant depression?"</span>
+)
+<span class="kw">print</span>(result.output)</div>
+<div class="code-body" id="code-1" style="display:none"><span class="kw">from</span> evoagentx.workflow <span class="kw">import</span> <span class="cls">Workflow</span>
+<span class="kw">from</span> evoagentx.agents <span class="kw">import</span> <span class="cls">Agent</span>
+
+<span class="cmt"># Define a multi-agent workflow</span>
+workflow <span class="op">=</span> <span class="cls">Workflow</span>(name<span class="op">=</span><span class="str">"clinical_review"</span>)
+
+<span class="cmt"># Add agents as workflow steps</span>
+workflow.add_step(
+    agent<span class="op">=</span><span class="str">"literature_searcher"</span>,
+    input<span class="op">=</span><span class="str">"{query}"</span>
+)
+workflow.add_step(
+    agent<span class="op">=</span><span class="str">"evidence_analyzer"</span>,
+    input<span class="op">=</span><span class="str">"{previous.output}"</span>
+)
+workflow.add_step(
+    agent<span class="op">=</span><span class="str">"report_writer"</span>,
+    input<span class="op">=</span><span class="str">"{previous.output}"</span>,
+    condition<span class="op">=</span><span class="str">"confidence > 0.8"</span>
+)
+
+<span class="cmt"># Execute the workflow</span>
+result <span class="op">=</span> workflow.run(
+    query<span class="op">=</span><span class="str">"efficacy of ketamine for PTSD"</span>
+)</div>
+<div class="code-body" id="code-2" style="display:none"><span class="kw">from</span> evoagentx.evolution <span class="kw">import</span> <span class="cls">EvoXBridge</span>
+<span class="kw">from</span> evox.algorithms <span class="kw">import</span> <span class="cls">PSO</span>, <span class="cls">DE</span>
+
+<span class="cmt"># Connect to EvoX evolutionary framework</span>
+bridge <span class="op">=</span> <span class="cls">EvoXBridge</span>(
+    algorithm<span class="op">=</span><span class="cls">DE</span>(pop_size<span class="op">=</span><span class="num">50</span>, dimension<span class="op">=</span><span class="num">20</span>),
+    fitness_fn<span class="op">=</span><span class="str">"task_accuracy"</span>
+)
+
+<span class="cmt"># Evolve agent prompt strategies</span>
+best_strategy <span class="op">=</span> bridge.evolve(
+    target<span class="op">=</span><span class="str">"agent.prompt_template"</span>,
+    generations<span class="op">=</span><span class="num">100</span>,
+    eval_dataset<span class="op">=</span><span class="str">"medical_qa_v2"</span>
+)
+
+<span class="kw">print</span>(<span class="str">f"Best fitness: </span>{best_strategy.fitness}<span class="str">"</span>)
+<span class="kw">print</span>(<span class="str">f"Generations:  </span>{best_strategy.generations}<span class="str">"</span>)</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- QUICK START -->
+<section class="qs" id="quickstart">
+<div class="container">
+<div class="section-label">⬡ Quick Start</div>
+<div class="section-title fade-up">Up and running in 60 seconds</div>
+<div class="section-desc fade-up" style="margin:0 auto">Install EvoAgentX and create your first evolving medical agent.</div>
+<div class="qs-box fade-up">
+<div class="qs-step">
+<h4>Step 1 — Install</h4>
+<code>pip install evoagentx</code>
+</div>
+<div class="qs-step">
+<h4>Step 2 — Create Your Agent</h4>
+<code>from evoagentx.tools import PubMedTool
+from evoagentx.agents import Agent
+from evoagentx.models import LLMBackbone
+
+agent = Agent(
+    name="researcher",
+    llm=LLMBackbone(model="gpt-4o"),
+    tools=[PubMedTool()]
+)
+print(agent.run("Latest papers on CRISPR?"))</code>
+</div>
+<div class="qs-step">
+<h4>Step 3 — Run</h4>
+<code>python my_agent.py</code>
+</div>
+</div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+<div class="container">
+<div style="display:flex;align-items:center;gap:8px">
+<span class="logo">Evo<span>AgentX</span></span>
+<span class="footer-copy">© 2025 MoKangMedical. MIT License.</span>
+</div>
+<div class="footer-links">
+<a href="https://github.com/MoKangMedical/EvoAgentX" target="_blank">GitHub</a>
+<a href="https://github.com/MoKangMedical/EvoAgentX/tree/main/docs" target="_blank">Docs</a>
+<a href="https://pypi.org/project/evoagentx/" target="_blank">PyPI</a>
+<a href="https://github.com/MoKangMedical/EvoAgentX/issues" target="_blank">Issues</a>
+</div>
+</div>
+</footer>
+
+<script>
+// Intersection Observer for fade-up
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
+}, { threshold: 0.15 });
+document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+
+// Counter animation
+const counterObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    const target = parseInt(el.dataset.count);
+    const suffix = el.dataset.suffix || '';
+    let current = 0;
+    const step = Math.max(1, Math.floor(target / 40));
+    const timer = setInterval(() => {
+      current += step;
+      if (current >= target) { current = target; clearInterval(timer); }
+      el.textContent = current + suffix;
+    }, 30);
+    counterObs.unobserve(el);
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.stat-num').forEach(el => counterObs.observe(el));
+
+// Code tabs
+function showTab(idx, btn) {
+  document.querySelectorAll('.code-body').forEach((el,i) => el.style.display = i===idx ? 'block' : 'none');
+  document.querySelectorAll('.code-tab').forEach(el => el.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
