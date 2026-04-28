@@ -1,0 +1,32 @@
+{
+    "tools": [
+        {
+            "name": "drug_search",
+            "description": "Search FDA drug labels",
+            "module": "evoagentx.tools.drugbank_tool",
+            "class": "DrugSearchTool",
+            "params": {}
+        },
+        {
+            "name": "drug_interaction_check",
+            "description": "Check drug-drug interactions via FDA FAERS",
+            "module": "evoagentx.tools.drugbank_tool",
+            "class": "DrugInteractionTool",
+            "params": {}
+        },
+        {
+            "name": "clinical_trials_search",
+            "description": "Search ClinicalTrials.gov",
+            "module": "evoagentx.tools.clinicaltrials_tool",
+            "class": "ClinicalTrialsSearchTool",
+            "params": {}
+        },
+        {
+            "name": "pubmed_search",
+            "description": "Search PubMed for literature",
+            "module": "evoagentx.tools.pubmed_tool",
+            "class": "PubMedSearchTool",
+            "params": {}
+        }
+    ]
+}
