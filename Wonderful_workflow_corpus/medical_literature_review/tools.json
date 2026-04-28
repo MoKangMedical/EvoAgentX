@@ -1,0 +1,18 @@
+{
+    "tools": [
+        {
+            "name": "pubmed_search",
+            "description": "Search PubMed for biomedical literature",
+            "module": "evoagentx.tools.pubmed_tool",
+            "class": "PubMedSearchTool",
+            "params": {}
+        },
+        {
+            "name": "pubmed_fetch_detail",
+            "description": "Fetch full article details by PMID",
+            "module": "evoagentx.tools.pubmed_tool",
+            "class": "PubMedFetchDetailTool",
+            "params": {}
+        }
+    ]
+}
